@@ -1,0 +1,11 @@
+create '/user/user01/hly_temp', 'readings', BULKLOAD => 'true'
+
+java -cp `hbase classpath`:./lab-solutions-1.1.jar bulkload.BulkLoadMapReduce /user/user01/hly_temp /user/user01/input/ /user/user01/output/
+
+create '/user/user01/hly_temp', 'readings', BULKLOAD => 'true'
+
+
+alter '/user/user01/hly_temp', 'readings', BULKLOAD => 'false'
+
+
+java -cp `hbase classpath`:./lab-exercises-1.1.jar bulkload.BulkLoadMapReduce /user/user01/hly_temp /user/user01/input/ /user/user01/output/

@@ -1,0 +1,61 @@
+Create a table with multiple column families, give read/write permissions to users.  Insert and Scan rows in the table logged in different users using MapRCLI and Hbase Shell.
+
+Create a Table /user/user01/t_user01 with two column families cf1 and cf2  using hbase shell.
+
+create '/user/user01/t_user01', {NAME=>'cf1'}, {NAME=>'cf2'}
+
+Add rows to the table using hbase shell. Column Family CF1 has columns C1 and C2, Column Family CF2 has columns C3 and C4
+
+put   '/user/user01/t_user01',  'r1',  'cf1:c1', 'v11'
+put   '/user/user01/t_user01',  'r1',  'cf1:c2', 'v12'
+put   '/user/user01/t_user01',  'r1',  'cf2:c3', 'v13'
+put   '/user/user01/t_user01',  'r1',  'cf2:c4', 'v14'
+
+scan '/user/user01/t_user01'
+shows 1 row, 4 values
+list_perm '/user/user01/t_user01'  
+
+Until now only the owner of the table (mapr) /t_user has read and write permissions on the table. 
+
+Switch to user02 and try to scan the table. 
+su user01
+scan '/user/user01/t_user01' 
+# shows 0 rows  why ? 
+
+Give Read Permissions to user02 on column family cf1 
+maprcli table cf edit -path /user/user01/t_user01 -cfname cf1 -readperm "u:user01 | u:user02"
+su user02
+echo "scan '/user/user01/t_user01'" | hbase shell   
+# only shows cf1  
+echo "scan '/user/user01/t_user01', {COLUMNS => ['cf1']}" | hbase shell
+shows 1 row with 2 column values
+echo "scan '/user/user01/t_user01', {COLUMNS => ['cf2']}" | hbase shell
+shows 0 rows 
+
+Give Write Permissions to User02 on column family cf1. Insert a new row as user02. Read the new row as user01
+ 
+maprcli table cf edit -path /user/user01/t_user01 -cfname cf1 -writeperm "u:user01 | u:user02"
+
+su user02
+echo "put '/user/user01/t_user01', 'r2', 'cf1:c1', 'v21'" | hbase shell
+su user01
+echo "scan '/user/user01/t_user01', {COLUMNS => ['cf1']}" | hbase shell
+should now show 2 rows 3 values
+
+Column Level Permissions: Allow only user02 read permissions only on C1 in CF1 
+
+maprcli table cf edit -path /user/user01/t_user01 -cfname cf1 -readperm "u:root | u:user02"
+maprcli table cf colperm set -path /user/user01/t_user01 -cfname cf1 -name c1 -readperm "u:mapr| u:user02"
+
+
+su user02
+echo "scan '/user/user01/t_user01', {COLUMNS => ['cf1']}" | hbase shell
+should show 2 rows 3 values
+
+su user01
+echo "scan '/user/user01/t_user01', {COLUMNS => ['cf1']}" | hbase shell
+should show 0 rows
+
+Access is given by “ANDing” the permissions on the Table → Column Family → Column. 
+
+

@@ -1,0 +1,60 @@
+tar zxvf ycsb-0.1.4.tar.gz 
+cd ycsb-0.1.4/
+
+
+hbase shell
+ create '/user/user01/usertable', 'family'
+ list
+ exit
+
+
+export cp=core/lib/core-0.1.4.jar:\
+	hbase-binding/lib/hbase-binding-0.1.4.jar
+export ycsb_processes=2
+export ycsb_threads=3
+
+cd ~/ycsb-0.1.4
+for i in $(seq 1 $ycsb_processes); do
+	HBASE_CLASSPATH=$cp \
+	hbase com.yahoo.ycsb.Client \
+	-threads $ycsb_threads -db com.yahoo.ycsb.db.HBaseClient \
+	-P workloads/workloada -p columnfamily=family -p table=/user/user01/usertable -load -s \
+	-p insertstart=${i}000 -p insertcount=1000 \
+	> ~/ycsb_write_${i}.txt &
+done
+
+for i in ~/ycsb*.txt; do grep -H 'Throughput\|99thPercentile' $i; done
+
+
+export cp=core/lib/core-0.1.4.jar:\
+	hbase-binding/lib/hbase-binding-0.1.4.jar
+export ycsb_processes=2
+export ycsb_threads=3
+
+cd ~/ycsb-0.1.4
+for i in $(seq 1 $ycsb_processes); do
+	HBASE_CLASSPATH=$cp \
+	hbase com.yahoo.ycsb.Client \
+	-threads $ycsb_threads -db com.yahoo.ycsb.db.HBaseClient \
+	-P workloads/workloada -p columnfamily=family -p table=/user/user01/usertable -t -s \
+	-p insertstart=${i}0000 -p insertcount=1000 \
+	-p operationcount=600 \
+	> ~/ycsb_rw_${i}.txt &
+done
+
+
+export cp=core/lib/core-0.1.4.jar:\
+	hbase-binding/lib/hbase-binding-0.1.4.jar
+export ycsb_processes=2
+export ycsb_threads=3
+
+cd ~/ycsb-0.1.4
+for i in $(seq 1 $ycsb_processes); do
+	HBASE_CLASSPATH=$cp \
+	hbase com.yahoo.ycsb.Client \
+	-threads $ycsb_threads -db com.yahoo.ycsb.db.HBaseClient \
+	-P workloads/workloade -p columnfamily=family -p table=/user/user01/usertable -t -s \
+	-p insertstart=${i}0000 -p insertcount=1000 \
+	-p operationcount=600 -p maxscanlength=50 \
+	> ~/ycsb_scan_${i}.txt &
+done
