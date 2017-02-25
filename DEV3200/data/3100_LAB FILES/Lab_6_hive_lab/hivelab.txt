@@ -1,0 +1,20 @@
+  
+  scp 500trades.txt  
+  scp  schemadesignsolution-1.0.jar 
+
+  java -cp `hbase classpath`:./schemadesignsolution-1.0.jar schemadesign.CreateTable tall ./500trades.txt 
+
+
+start hive shell
+hive
+
+CREATE EXTERNAL TABLE trades(key string, price bigint, vol bigint)
+STORED BY 'org.apache.hadoop.hive.hbase.HBaseStorageHandler'
+WITH SERDEPROPERTIES ("hbase.columns.mapping" = "CF1:price#b,CF1:vol#b")
+TBLPROPERTIES("hbase.table.name" = "/user/user01/trades_tall");
+
+hive> describe trades ;
+hive> select * from trades;
+hive> select * from trades where key like "GOOG%";
+hive> select avg(price) from trades where key like "GOOG%"
+
