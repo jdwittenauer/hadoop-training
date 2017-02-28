@@ -1,0 +1,26 @@
+# Download data to the cluster over the web
+$ wget http://course-files.mapr.com/DEV3200/DEV325-v5.2-Lab4.zip
+
+# Unzip a file 
+$ unzip DEV325-v5.2-Lab4.zip
+
+# Examine a CSV file sample
+$ tail Lab_4_schema_import_lab/ontime.csv
+
+# Start the hbase shell
+$ hbase shell
+
+# Query a single row in a table
+> scan '/user/user01/tables/airline', {LIMIT => 1}
+
+# Query for a particular cell value
+> scan '/user/user01/tables/airline', {FILTER => "ValueFilter(=,'binary:239.00')", LIMIT => 10}
+
+# Query where column = value
+> scan '/user/user01/tables/airline', {FILTER => "SingleColumnValueFilter('cf1','cncl', =,'binary:1.00')", LIMIT => 10}
+
+# Query for a column prefix
+> scan '/user/user01/tables/airline', {FILTER => "ColumnPrefixFilter('cnc')", LIMIT => 10}
+
+# Example using regular expression embedded in the query
+> scan '/user/user01/tables/airline', {COLUMNS => ['cf1:carrierdelay'], FILTER => "(SingleColumnValueFilter('cf1','carrierdelay', =,'regexstring:^[2-9]{3}')", LIMIT => 10}

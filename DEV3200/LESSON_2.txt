@@ -1,44 +1,51 @@
--- Launch the hbase shell from ssh
+# Launch the hbase shell from ssh
 $ hbase shell
 
--- List shell commands
+# List shell commands
 > help
 
--- Create a new hbase table with 2 column families
+# Create a new hbase table with 2 column families
 > create '/user/user01/customer', 'addr', 'order'
 
--- Get the table description
+# Get the table description
 > describe '/user/user01/customer'
 
--- Write data to the table
+# Write data to the table
 > put '/user/user01/customer', 'jsmith', 'addr:city', 'nashville'
 > put '/user/user01/customer', 'jsmith', 'addr:state', 'TN'
 > put '/user/user01/customer', 'jsmith', 'order:numb', '1234'
 > put '/user/user01/customer', 'jsmith', 'order:date',  '10-18-2014'
 
--- Retrieve data for a given key
+# Retrieve data for a given key
 > get '/user/user01/customer', 'jsmith'
 
--- Same but for only a given column family or column
+# Same but for only a given column family or column
 > get '/user/user01/customer', 'jsmith', 'addr'
 > get '/user/user01/customer', 'jsmith', 'order:numb' 
 
--- Alter table to change # of versions stored
+# Alter table to change # of versions stored
 > alter '/user/user01/customer', NAME => 'order', VERSIONS => 5
 
--- Retrieve multiple version of a cell
+# Retrieve multiple version of a cell
 > get '/user/user01/customer', 'jsmith', {COLUMNS => ['order:numb'], VERSIONS => 5}
 
--- Use scan to do queries on the table
+# Use scan to do queries on the table
 > scan '/user/user01/customer'
 > scan '/user/user01/customer', {COLUMNS => ['addr']}
 > scan '/user/user01/customer', {COLUMNS => ['order:numb'], VERSIONS => 5}
 > scan '/user/user01/customer', {STARTROW => 'j',  STOPROW => 't', COLUMNS => ['addr']}
 
--- Get the number of rows in a table
+# Get the number of rows in a table
 > count '/user/user01/customer'
 
--- Delete a column, column family, or entire row for a given key
+# Delete a column, column family, or entire row for a given key
 > delete '/user/user01/customer', 'njones', 'addr:city'
 > delete '/user/user01/customer', 'jsmith', 'addr:'
 > deleteall '/user/user01/customer', 'jsmith'
+
+# Delete an entire table
+> disable '/user/user01/customer'
+> drop '/user/user01/customer'
+
+# Exit the hbase shell
+> quit
