@@ -1,5 +1,0 @@
-import org.apache.hadoop.hbase.filter.RegexStringComparator
-import org.apache.hadoop.hbase.filter.CompareFilter
-import org.apache.hadoop.hbase.filter.SubstringComparator
-import org.apache.hadoop.hbase.filter.RowFilter
-scan '/user/user01/tables/airline', {FILTER => RowFilter.new(CompareFilter::CompareOp.valueOf('EQUAL'),SubstringComparator.new('JFK'))}

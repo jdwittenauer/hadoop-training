@@ -1,7 +1,0 @@
-import org.apache.hadoop.hbase.filter.CompareFilter
-import org.apache.hadoop.hbase.filter.SingleColumnValueFilter
-import org.apache.hadoop.hbase.filter.BinaryPrefixComparator
-import org.apache.hadoop.hbase.util.Bytes
-scan '/user/user01/tables/airline', { COLUMNS => 'cf1:carrierdelay', FILTER =>
-    SingleColumnValueFilter.new(Bytes.toBytes('cf1'),Bytes.toBytes('carrierdelay'), CompareFilter::CompareOp.valueOf('EQUAL'), BinaryPrefixComparator.new(Bytes.toBytes('9.00')))
-}
