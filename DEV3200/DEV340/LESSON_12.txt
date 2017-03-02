@@ -1,0 +1,30 @@
+# Do some data preparation work
+$ wget http://course-files.mapr.com/DEV3200/DEV340-v5.2-Lab12.zip
+$ unzip DEV340-v5.2-Lab12.zip
+$ cp data/voter1M  ~
+
+# Create a table using hbase shell
+> create '/user/user01/voter_data_table', {NAME=>'cf1'}, {NAME=>'cf2'}, {NAME=>'cf3'}, BULKLOAD => 'true'
+
+# Use importTsv to populate the table
+> hbase org.apache.hadoop.hbase.mapreduce.ImportTsv -Dimporttsv.columns=HBASE_ROW_KEY,cf1:name,\
+> cf2:age,cf2:party,cf3:contribution_amount,cf3:voter_number \
+> -Dimporttsv.bulk.output=/user/user01/dummy \
+> /user/user01/voter_data_table \
+> /user/user01/voter1M
+
+# Take the table out of "bulk load" mode
+> alter '/user/user01/voter_data_table', {NAME=>'cf1'}, {NAME=>'cf2'}, {NAME=>'cf3'}, BULKLOAD => 'false'
+
+# Create another table
+> create '/user/user01/hly_temp', 'readings', BULKLOAD => 'true'
+
+# Do some more data preparation work (now outside hbase shell)
+$ mkdir /user/user01/input
+$ cp data/hly-temp-10pctl.txt input/
+
+# Populate the table using a mapreduce program
+$ java -cp `hbase classpath`:./lab-solutions-1.1.jar bulkload.BulkLoadMapReduce /user/user01/hly_temp /user/user01/input/ /user/user01/output/
+
+# Take the table out of "bulk load" mode (in hbase shell again)
+> alter '/user/user01/hly_temp', 'readings', BULKLOAD => 'false'

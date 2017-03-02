@@ -1,18 +1,16 @@
-tar zxvf ycsb-0.1.4.tar.gz 
-cd ycsb-0.1.4/
+# Do some preparation work
+$ wget http://course-files.mapr.com/DEV3200/DEV340-v5.2-Lab13.tar.gz
+$ tar zxvf DEV340-v5.2-Lab13.tar.gz
+$ cd ycsb-0.1.4/
 
+# Create a new table in the hbase shell
+> create '/user/user01/usertable', 'family'
 
-hbase shell
- create '/user/user01/usertable', 'family'
- list
- exit
-
-
+# Run the "write" performance test via the following script
 export cp=core/lib/core-0.1.4.jar:\
 	hbase-binding/lib/hbase-binding-0.1.4.jar
 export ycsb_processes=2
 export ycsb_threads=3
-
 cd ~/ycsb-0.1.4
 for i in $(seq 1 $ycsb_processes); do
 	HBASE_CLASSPATH=$cp \
@@ -23,14 +21,11 @@ for i in $(seq 1 $ycsb_processes); do
 	> ~/ycsb_write_${i}.txt &
 done
 
-for i in ~/ycsb*.txt; do grep -H 'Throughput\|99thPercentile' $i; done
-
-
+# Now do the read/write test
 export cp=core/lib/core-0.1.4.jar:\
 	hbase-binding/lib/hbase-binding-0.1.4.jar
 export ycsb_processes=2
 export ycsb_threads=3
-
 cd ~/ycsb-0.1.4
 for i in $(seq 1 $ycsb_processes); do
 	HBASE_CLASSPATH=$cp \
@@ -42,12 +37,11 @@ for i in $(seq 1 $ycsb_processes); do
 	> ~/ycsb_rw_${i}.txt &
 done
 
-
+# Finally the scan test
 export cp=core/lib/core-0.1.4.jar:\
 	hbase-binding/lib/hbase-binding-0.1.4.jar
 export ycsb_processes=2
 export ycsb_threads=3
-
 cd ~/ycsb-0.1.4
 for i in $(seq 1 $ycsb_processes); do
 	HBASE_CLASSPATH=$cp \
