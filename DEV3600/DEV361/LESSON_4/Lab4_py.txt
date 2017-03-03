@@ -1,0 +1,125 @@
+/*_________________________________________________________________________*/
+/************Lab 4.1.2 - Load Data into Apache Spark **********/
+//Map input variables
+IncidntNum = 0
+Category = 1
+Descript = 2
+DayOfWeek = 3
+Date = 4
+Time = 5
+PdDistrict = 6
+Resolution = 7
+Address = 8
+X = 9
+Y = 10
+PdId = 11
+
+//Load SFPD data into RDD
+sfpdRDD = sc.textFile("/path/to/file/sfpd.csv").map(lambda line:line.split(","))
+
+/*_________________________________________________________________________*/
+/**************LAB 4.2.1 Explore Data Using RDD Operations******************/
+//1. How do you see the first element of the inputRDD?
+sfpdRDD.first()
+
+//2.What do you use to see the first 5 elements of the RDD?
+sfpdRDD.take(5)
+
+//3. What is the total number of incidents?
+totincs = sfpdRDD.count()
+print totincs
+
+//4. What is the total number of distinct resolutionss?
+totres = sfpdRDD.map(lambda inc:inc[Resolution]).distinct().count()
+print totres
+
+//5. List all the Districts.
+dists = sfpdRDD.map(lambda inc:inc[PdDistrict]).distinct()
+dists.collect()
+
+/*_________________________________________________________________________*/
+/*************LAB 4.3.1 - Create PAIR RDDs & apply pairRDD operations**************/
+//1. Which five districts have the highest incidents?
+top5Dists=sfpdRDD.map(lambda incident:(incident[PdDistrict],1)).reduceByKey(lambda x,y:x+y).map(lambda x:(x[1],x[0])).sortByKey(False).take(5)
+print top5Dist
+
+//2. Which five addresses have the highest number of incidents?
+top5Adds=sfpdRDD.map(lambda incident:(incident[Address],1)).reduceByKey(lambda x,y:x+y).map(lambda x:(x[1],x[0])).sortByKey(False).take(5)
+print top5Add
+
+//3. What are the top three catefories of incidents?
+top3Cat=sfpdRDD.map(lambda incident:(incident[Category],1)).reduceByKey(lambda x,y:x+y).map(lambda x:(x[1],x[0])).sortByKey(False).take(3)
+print top3Cat
+
+//4. What is the count of incidents by district?
+num_inc_dist=sfpdRDD.map(lambda incident:(incident[PdDistrict],1)).countByKey()
+print num_inc_dist
+
+/*_________________________________________________________________________*/
+/**************************Lab 4.3.2. Join PairRDD**************************/
+//5. Load each dataset into separate pairRDDs with “address” being the key? 
+catAdd=sc.textFile("/path/to/file/J_AddCat.csv").map(lambda x:x.split(",")).map(lambda x:(x[1],x[0]))
+distAdd=sc.textFile("/path/to/file/J_AddDist.csv").map(lambda x:x.split(",")).map(lambda x:(x[1],x[0]))
+
+
+//6. List the incident category and district for for those addresses that have both category and district information. Verify that the size estimated earlier is correct.
+catJdist=catAdd.join(distAdd)
+catJDist.collect()
+catJdist.count()
+catJdist.take(10)
+
+//7.	List the incident category and district for all addresses irrespective of whether each address has category and district information. Verify that the size estimated earlier is correct.
+catJdist1 = catAdd.leftOuterJoin(distAdd)
+catJdist1.collect()
+catJdist.count()
+
+//8.	List the incident district and category for all addresses irrespective of whether each address has category and district information. Verify that the size estimated earlier is correct.
+catJdist2 = catAdd.rightOuterJoin(distAdd)
+catJdist2.collect()
+catJdist2.count()
+/*_________________________________________________________________________*/
+/**************************Lab 4.4.1. Explore Partitioning**************************/
+//1. How many partitions are there in the sfpdRDD?
+sfpdRDD.getNumPartitions()
+
+//2. How do you find the type of partitioner?
+sfpdRDD.partitioner
+
+//3. Create a pair RDD - INcidents by district
+incByDists = sfpdRDD.map(lambda incident:(incident[PdDistrict],1)).reduceByKey(lambda x,y:x+y)
+
+//How many partitions does this have?
+incByDists.partitions.size
+//What is the type of partitioner?
+incByDists.partitioner
+
+//4. Now add a map transformation
+val inc_map = incByDists.map(x=>(x._2,x._1))
+//Is there a change in the size?
+inc_map.partitions.size
+//What about the type of partitioner?
+inc_map.partitioner
+
+//5.Add sortByKey()
+val inc_sort=incByDists.incByDists.map(x=>(x._2,x._1)).sortByKey(false)
+//type of partitioner
+inc_sort.partitioner
+
+//6. Add groupByKey
+val inc_group = sfpdRDD.map(incident=>(incident(PdDistrict),1)).groupByKey()
+//type of partitioner
+inc_group.partitioner
+
+//7. specify partition size in the transformation
+val incByDists = sfpdRDD.map(incident=>(incident(PdDistrict),1)).reduceByKey((x,y)=>x+y,10)
+//number of partitions
+incByDists.partitions.size
+
+//8. Create 2 pairRDD
+val catAdd = sc.textFile("/user/user01/data/J_AddCat.csv").map(x=>x.split(",")).map(x=>(x(1),x(0)))
+val distAdd = sc.textFile("/user/user01/data/J_AddDist.csv").map(x=>x.split(",")).map(x=>(x(1),x(0)))
+
+//9. join and specify partitions- then check the number of partitions and the partitioner
+val catJdist=catAdd.join(distAdd,8)
+catJdist.partitions.size
+catjDist.partitioner
