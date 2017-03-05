@@ -1,20 +1,17 @@
-/* Simple App to inspect Auction data */
-/* The following import statements are importing SparkContext, all subclasses and SparkConf*/
 package solutions
 import org.apache.spark.SparkContext
 import org.apache.spark.SparkContext._
 import org.apache.spark.SparkConf
-//Will use max, min - import java.Lang.Math
 import java.lang.Math
 
 object AuctionsApp {
   def main(args: Array[String]) {
     val conf = new SparkConf().setAppName("AuctionsApp")
     val sc = new SparkContext(conf)
-    /* Add location of input file */
     val usrhome = System.getenv("HOME")
     val aucFile = usrhome.concat("/data/auctiondata.csv")
-    //map input variables                
+
+    // Map input variables                
     val auctionid = 0
     val bid = 1
     val bidtime = 2
@@ -24,18 +21,23 @@ object AuctionsApp {
     val price = 6
     val itemtype = 7
     val daystolive = 8
-    //build the inputRDD
+
+    // Load the data
     val auctionRDD = sc.textFile(aucFile).map(line => line.split(",")).cache()
-    //total number of bids across all auctions
+
+    // Total number of bids across all auctions
     val totalbids = auctionRDD.count()
-    //total number of items (auctions)
+
+    // Total number of items
     val totalitems = auctionRDD.map(line => line(auctionid)).distinct().count()
-    //RDD containing ordered pairs of auctionid,number
+
+    // Max, min and avg number of bids
     val bids_auctionRDD = auctionRDD.map(x => (x(auctionid), 1)).reduceByKey((x, y) => x + y)
-    //max, min and avg number of bids
     val maxbids = bids_auctionRDD.map(x => x._2).reduce((x, y) => Math.max(x, y))
     val minbids = bids_auctionRDD.map(x => x._2).reduce((x, y) => Math.min(x, y))
     val avgbids = totalbids / totalitems
+
+    // Print output to the console
     println("total bids across all auctions: %s ".format(totalbids))
     println("total number of distinct items: %s ".format(totalitems))
     println("Max bids across all auctions: %s ".format(maxbids))
