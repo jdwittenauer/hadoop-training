@@ -13,6 +13,7 @@ import org.apache.spark.streaming.scheduler.{
 }
 import org.apache.spark.sql.SQLContext
 
+
 object SensorStreamWindow extends Serializable { 
   case class Sensor(resid: String, date: String, time: String, hz: Double, disp: Double, flo: Double, sedPPM: Double, psi: Double, chlPPM: Double)
   case class PumpInfo(resid: String, pumpType: String, purchaseDate: String, serviceDate: String, vendor: String, longitude: Float, lattitude: Float)

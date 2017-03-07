@@ -7,9 +7,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.NavigableMap;
 import java.util.Set;
-
 import org.apache.hadoop.conf.Configuration;
-
 import org.apache.hadoop.hbase.client.HTable;
 import org.apache.hadoop.hbase.client.HTableInterface;
 import org.apache.hadoop.hbase.client.Put;
@@ -20,34 +18,21 @@ import org.apache.hadoop.hbase.filter.Filter;
 import org.apache.hadoop.hbase.util.Bytes;
 
 
-
 public class TradeDAOFlat implements TradeDAO {
-
     private final HTableInterface table;
     public final static byte[] priceCF = Bytes.toBytes("price");
     public final static byte[] volumeCF = Bytes.toBytes("vol");
     public final static byte[] statsCF = Bytes.toBytes("stats");
-
     private final static DateFormat rowkeyDateFormat = new SimpleDateFormat("yyyyMMdd");
     private final static DateFormat columnHourFormat = new SimpleDateFormat("HH");
     private final static char delimChar = '_';
     public static final String userdirectory = ".";
-    //  public static final String userdirectory = System.getProperty("user.home");
     public static final String tablePath = userdirectory + "/trades_flat";
 
     public TradeDAOFlat(HTableInterface table) throws IOException {
         this.table = table;
     }
 
-    /**
-     * constructs a TradeDAO using a flat-wide table schema. This implementation
-     * takes a pathToTable for the data table.
-     *
-     * @param conf the HBase configuration
-     * @param pathToTable the path to the table, stated from the root of the
-     * Hadoop filesystem. pass null to use a default table location.
-     * @throws IOException
-     */
     public TradeDAOFlat(Configuration conf) throws IOException {
         table = new HTable(conf, tablePath);
     }
@@ -65,8 +50,10 @@ public class TradeDAOFlat implements TradeDAO {
 
         // Put the price to the price column family
         Put put = new Put(Bytes.toBytes(rowkey));
+
         // The value to store is (long) price*100
         Float priceNoDecimals = trade.getPrice() * 100f;
+
         // Store as byte array of long, not float
         byte[] priceNoDecimalsAsLongBytes = Bytes.toBytes(priceNoDecimals.longValue());
         put.add(priceCF, hourCol, trade.getTime(), priceNoDecimalsAsLongBytes);
@@ -76,14 +63,6 @@ public class TradeDAOFlat implements TradeDAO {
         table.put(put);
     }
 
-    /**
-     * generates a rowkey for flat table implementation. rowkey format =
-     * SYMBOL_DATE (Date is formatted YYYYMMDD.) Example: GOOG_20131020
-     *
-     * @param symbol
-     * @param time
-     * @return
-     */
     private String formRowkey(String symbol, Long time) {
         String timeString = rowkeyDateFormat.format(time);
         String rowkey = symbol + delimChar + timeString;
@@ -93,25 +72,19 @@ public class TradeDAOFlat implements TradeDAO {
     }
 
     @Override
-    public List<Trade> getTradesByDate(String symbol, Long from, Long to)
-            throws IOException {
-
+    public List<Trade> getTradesByDate(String symbol, Long from, Long to) throws IOException {
         // Create a list to store resulting trades
         List<Trade> trades = new ArrayList<Trade>();
 
         // Scan all applicable rows for the symbol, between given timestamps
         System.out.println("DEBUG getTradesByDate(): from= " + from + ", to= " + to);
-        Scan scan = new Scan(Bytes.toBytes(formRowkey(symbol, from)),
-                Bytes.toBytes(formRowkey(symbol, to)));
+        Scan scan = new Scan(Bytes.toBytes(formRowkey(symbol, from)), Bytes.toBytes(formRowkey(symbol, to)));
         scan.addFamily(priceCF);
         scan.addFamily(volumeCF);
-        scan.setMaxVersions(); // set scan to get all cell versions
+        scan.setMaxVersions();
 
         ResultScanner scanner = table.getScanner(scan);
 
-        // Iterate through the scanner, add scan results to list of Trades.
-        // Populate these: Date tradeDate, String tradeSymbol, Float tradePrice,
-        // Long tradeVolume
         for (Result result : scanner) {
             // scanner has one row result per Symbol per day
             createTradesFromResult(trades, result);
@@ -125,30 +98,33 @@ public class TradeDAOFlat implements TradeDAO {
         ResultScanner scanner = table.getScanner(scan);
         System.out.println("************************************");
         System.out.println("Scan results for Table without any filters:");
+
         // Create a list to store resulting trades
         List<Trade> trades = new ArrayList<Trade>();
+
         for (Result scanResult : scanner) {
-            System.out.println("Scan Result ");
+            System.out.println("Scan Result");
             Tools.resultMapToString(scanResult);
             createTradesFromResult(trades, scanResult);
         }
+
         scanner.close();
         return trades;
     }
 
     public void scanTradesWithFilter(Filter filter) throws IOException {
-        //
         Scan scan = mkScan();
         scan.setFilter(filter);
         ResultScanner scanner = table.getScanner(scan);
         System.out.println("************************************");
         System.out.println("Scan results for Table with filters:");
+
         for (Result scanResult : scanner) {
-            System.out.println("Scan Result ");
+            System.out.println("Scan Result");
             Tools.resultMapToString(scanResult);
         }
-        scanner.close();
 
+        scanner.close();
     }
 
     private Scan mkScan() {
@@ -161,41 +137,30 @@ public class TradeDAOFlat implements TradeDAO {
         String rowkey = Bytes.toString(result.getRow());
         String[] rowkeyTokens = rowkey.split(String.valueOf(delimChar));
         String symbol = rowkeyTokens[0];
-        System.out.println(" get Trade data from Scan Result for row key " + rowkey
-                + " Symbol " + symbol);
-        // returns three level Map of the form:
-        // Map <family,Map<qualifier,Map<timestamp,value>>>
-        NavigableMap<byte[], NavigableMap<byte[], NavigableMap<Long, byte[]>>> familyMap = result
-                .getMap();
-        // get Map<qualifier,Map<timestamp,value>>> for price Family
+        System.out.println(" get Trade data from Scan Result for row key " + rowkey + " Symbol " + symbol);
+        NavigableMap<byte[], NavigableMap<byte[], NavigableMap<Long, byte[]>>> familyMap = result.getMap();
         NavigableMap<byte[], NavigableMap<Long, byte[]>> priceQualMap = familyMap.get(priceCF);
-        // get Map<qualifier,Map<timestamp,value>>> for volume Family
         NavigableMap<byte[], NavigableMap<Long, byte[]>> volQualMap = familyMap.get(volumeCF);
         Set<byte[]> qualifiers = priceQualMap.keySet();
-        // Loop through column qualifiers for Family Map
+
+        // loop through column qualifiers for Family Map
         for (byte[] colQualifier : qualifiers) {
-            System.out.println(" get Trade data  from Family Maps for column "
-                    + Bytes.toString(colQualifier));
-            // get Map<timestamp,value> for Column from family maps
+            System.out.println(" get Trade data  from Family Maps for column " + Bytes.toString(colQualifier));
             NavigableMap<Long, byte[]> priceTsMap = priceQualMap.get(colQualifier);
             NavigableMap<Long, byte[]> volTsMap = volQualMap.get(colQualifier);
             Set<Long> tstamps = priceTsMap.keySet();
 
-            // Loop through time stamps for Column Maps
+            // loop through time stamps for Column Maps
             for (Long tstamp : tstamps) {
                 // get price and volume for this timestamp from Column maps
                 byte[] priceBytes = priceTsMap.get(tstamp);
                 byte[] volumeBytes = volTsMap.get(tstamp);
                 Float price = Bytes.toLong(priceBytes) / 100f;
                 Long volume = Bytes.toLong(volumeBytes);
-                System.out.println(" get Trade data from Column Maps for time stamp  "
-                        + tstamp + " , Price " + price + " , Volume " + volume);
+                System.out.println(" get Trade data from Column Maps for time stamp  " 
+                    + tstamp + " , Price " + price + " , Volume " + volume);
                 trades.add(new Trade(symbol, price, volume, tstamp));
             }
         }
-
     }
-
-
-
 }

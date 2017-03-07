@@ -11,6 +11,7 @@ import org.apache.spark.SparkContext
 import org.apache.spark.streaming.Seconds
 import org.apache.spark.streaming.StreamingContext
 
+
 object HBaseSensorStream extends Serializable {
   final val tableName = "/user/user01/sensor"
   final val cfDataBytes = Bytes.toBytes("data")

@@ -1,36 +1,29 @@
-/*
- * To change this template, choose Tools | Templates
- * and open the template in the editor.
- */
 package filter;
 
 import java.util.Date;
 
-/**
- *
- * @author carol
- */
-public class TimeUtil {
 
+public class TimeUtil {
     public static String dateToReverseString(Date date) {
-        String reversedDateAsStr =
-                Long.toString(Long.MAX_VALUE - date.getTime());
+        String reversedDateAsStr = Long.toString(Long.MAX_VALUE - date.getTime());
         StringBuilder builder = new StringBuilder();
 
         for (int i = reversedDateAsStr.length(); i < 19; i++) {
             builder.append('0');
         }
+
         builder.append(reversedDateAsStr);
         return builder.toString();
     }
 
     public static String dateToString(Date date) {
-        String dateAsStr =
-                Long.toString(date.getTime());
+        String dateAsStr = Long.toString(date.getTime());
         StringBuilder builder = new StringBuilder();
+
         for (int i = dateAsStr.length(); i < 19; i++) {
             builder.append('0');
         }
+
         builder.append(dateAsStr);
         return builder.toString();
     }
@@ -56,13 +49,11 @@ public class TimeUtil {
     }
 
     public static long convertStringToEpoch(String time) throws Exception {
-        // format  "01/01/1970 01:00:00"
-        long epoch = new java.text.SimpleDateFormat("MM/dd/yyyy HH:mm:ss").parse(time).getTime() ;
+        long epoch = new java.text.SimpleDateFormat("MM/dd/yyyy HH:mm:ss").parse(time).getTime();
         return epoch;
     }
 
     public static String convertEpochToString(long epoch) throws Exception {
-        // format  "01/01/1970 01:00:00"
         String date = new java.text.SimpleDateFormat("MM/dd/yyyy HH:mm:ss").format(new java.util.Date(epoch));
         return date;
     }
