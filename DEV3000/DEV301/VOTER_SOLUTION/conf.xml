@@ -1,0 +1,4 @@
+<property>
+    <name>mapred.child.java.opts</name>
+    <value>-Xmx4096m</value>
+</property>

@@ -1,0 +1,3 @@
+product_sumofproducts	13361875
+satm_delta_sumofsquares	14697775
+satv_delta_sumofsquares	12204650

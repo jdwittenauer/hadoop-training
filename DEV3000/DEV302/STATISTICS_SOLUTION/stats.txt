@@ -1,0 +1,6 @@
+math_min	325
+math_max	780
+math_mean	592
+verbal_min	300
+verbal_max	700
+verbal_mean	539
