@@ -1,0 +1,29 @@
+flat wide map input 
+GOOG_20131024        column=price:15, timestamp=1382655321309, value=9996
+GOOG_20131024        column=price:15, timestamp=1382662214757, value=7059
+GOOG_20131024        column=price:18, timestamp=1382663397116, value=5005
+
+flat wide map output reduce input
+GOOG_20131025   5135
+GOOG_20131025   6155
+GOOG_20131025   5095
+
+flat wide  reduce output
+GOOG_20131022        column=stats:count, timestamp=1385137969400, value=37
+GOOG_20131022        column=stats:max, timestamp=1385137969400, value=99.96
+GOOG_20131022        column=stats:mean, timestamp=1385137969400, value=75.59
+GOOG_20131022        column=stats:min, timestamp=1385137969400, value=50.05
+
+tall narrow map input 
+GOOG_922337065438554 column=CF1:price, timestamp=1383943828225, value=9996
+GOOG_922337065438700 column=CF1:price, timestamp=1383943828322, value=5005
+
+tall narrow map output reduce input
+GOOG    9996
+GOOG    5005
+
+flat wide  reduce output
+GOOG                 column=CF1:count, timestamp=1385138594695, value=37
+GOOG                 column=CF1:max, timestamp=1385138594695, value=99.96
+GOOG                 column=CF1:mean, timestamp=1385138594695, value=75.59
+GOOG                 column=CF1:min, timestamp=1385138594695, value=50.05
